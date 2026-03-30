@@ -59,6 +59,10 @@ def signal_filter_row(active: str = "all") -> InlineKeyboardMarkup:
     ]
     return InlineKeyboardMarkup([
         buttons,
+        [
+            InlineKeyboardButton("\U0001f4e5 Download CSV", callback_data="download_csv"),
+            InlineKeyboardButton("\U0001f4e5 Download Excel", callback_data="download_xlsx"),
+        ],
         [InlineKeyboardButton("\U0001f519 Back to Menu", callback_data="cmd_menu")],
     ])
 
@@ -95,7 +99,7 @@ def back_to_menu() -> InlineKeyboardMarkup:
 
 
 # ---------------------------------------------------------------------------
-# Download keyboard
+# Download keyboard (standalone — kept for direct use if needed)
 # ---------------------------------------------------------------------------
 
 def download_keyboard() -> InlineKeyboardMarkup:
