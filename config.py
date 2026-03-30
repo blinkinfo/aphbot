@@ -42,5 +42,5 @@ SIGNAL_LEAD_TIME: int = 85  # seconds before slot end to check signal
 # ADX Filter
 # ---------------------------------------------------------------------------
 ADX_LENGTH: int = 14                # ADX period (Wilder's smoothing)
-ADX_CANDLE_COUNT: int = 35          # 5-min candles to fetch from Coinbase
+ADX_CANDLE_COUNT: int = 300         # 5-min candles to fetch from Coinbase (max Coinbase allows; needed for ADX warm-up)
 COINBASE_CANDLE_URL: str = "https://api.exchange.coinbase.com/products/BTC-USD/candles"
