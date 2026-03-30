@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import csv
+import io
 import logging
 from datetime import datetime, timezone
 from typing import Any
 
+import openpyxl
 from telegram import Update
 from telegram.error import BadRequest
 from telegram.ext import (
@@ -27,6 +30,7 @@ from bot.formatters import (
 )
 from bot.keyboards import (
     back_to_menu,
+    download_keyboard,
     main_menu,
     settings_keyboard,
     signal_filter_row,
@@ -211,6 +215,48 @@ async def cmd_help(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 # ---------------------------------------------------------------------------
+# Download handlers
+# ---------------------------------------------------------------------------
+
+@auth_check
+async def cmd_download_csv(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer("Preparing CSV...")
+    rows = await queries.get_all_signals_for_export()
+    buf = io.StringIO()
+    writer = csv.DictWriter(buf, fieldnames=["id", "slot_start", "side", "entry_price", "is_win"])
+    writer.writeheader()
+    writer.writerows(rows)
+    buf.seek(0)
+    await query.message.reply_document(
+        document=io.BytesIO(buf.getvalue().encode()),
+        filename="signals.csv",
+        caption="\U0001f4e5 All signals export (CSV)",
+    )
+
+
+@auth_check
+async def cmd_download_excel(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    query = update.callback_query
+    await query.answer("Preparing Excel...")
+    rows = await queries.get_all_signals_for_export()
+    wb = openpyxl.Workbook()
+    ws = wb.active
+    ws.title = "Signals"
+    ws.append(["id", "slot_start", "side", "entry_price", "is_win"])
+    for r in rows:
+        ws.append([r["id"], r["slot_start"], r["side"], r["entry_price"], r["is_win"]])
+    buf = io.BytesIO()
+    wb.save(buf)
+    buf.seek(0)
+    await query.message.reply_document(
+        document=buf,
+        filename="signals.xlsx",
+        caption="\U0001f4e5 All signals export (Excel)",
+    )
+
+
+# ---------------------------------------------------------------------------
 # Callback query router
 # ---------------------------------------------------------------------------
 
@@ -269,6 +315,12 @@ async def callback_router(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
             "Type the new amount in USDC (e.g. <code>2.50</code>):",
         )
         context.user_data["awaiting_amount"] = True
+
+    elif data == "download_csv":
+        await cmd_download_csv(update, context)
+
+    elif data == "download_xlsx":
+        await cmd_download_excel(update, context)
 
     else:
         await query.answer("Unknown action")
