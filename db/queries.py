@@ -149,7 +149,7 @@ async def get_unresolved_signals() -> list[dict[str, Any]]:
     async with aiosqlite.connect(_db()) as db:
         db.row_factory = aiosqlite.Row
         cursor = await db.execute(
-            "SELECT * FROM signals WHERE is_win IS NULL AND skipped = 0 ORDER BY id"
+            "SELECT * FROM signals WHERE is_win IS NULL AND skipped = 0 AND filter_blocked = 0 ORDER BY id"
         )
         rows = await cursor.fetchall()
         return [dict(r) for r in rows]
